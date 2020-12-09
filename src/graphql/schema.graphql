@@ -2,17 +2,17 @@ type Query {
     me: String!
     login(data: loginUser!): loginCredentials!
     user(id: ID!): User!
-    users: [User!]!
+    users(page: Int!): [User!]!
     post(id: ID!): Post!  
-    posts: [Post!]!
+    posts(page: Int!, onlySelf: Boolean!): [Post!]!
     comment(id: ID!): Comment!
-    comments: [Comment!]!
+    comments(page: Int!, onlySelf: Boolean!): [Comment!]!
 }
 
 type Mutation {
     createUser(data: createUserInput!): User!
-    updateUser(id: ID!,data: updateUser!): User!
-    deleteUser(id: ID!): Int!
+    updateUser(data: updateUserInput!): User!
+    deleteUser: Int!
     createPost(data: createPostInput!): Post!
     deletePost(id: ID!): Int!
     createComment(data: createCommentInput!): Comment!
@@ -29,16 +29,14 @@ input createUserInput {
 input createPostInput {
     title: String!
     body: String!
-    author: ID!
 }
 
 input createCommentInput {
     text: String!
     post: ID!
-    author: ID! 
 }
 
-input updateUser {
+input updateUserInput {
     name: String
     email: String
     password: String

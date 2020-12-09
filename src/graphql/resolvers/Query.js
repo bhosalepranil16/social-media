@@ -69,7 +69,7 @@ const Query = {
             throw new Error('Unauthenticated');
         }
         const User = ctx.default.User;
-        const users = await User.find();
+        const users = await User.find({},null,{ skip: (args.page - 1) * 5, limit: 5 });
         return users;
     },
     posts : async(parent, args, ctx, info) => {
@@ -77,7 +77,12 @@ const Query = {
             throw new Error('Unauthenticated');
         }
         const Post = ctx.default.Post;
-        const posts = await Post.find();
+        let posts;
+        if(args.onlySelf) {
+            posts = await Post.find({author: ctx.req._id}, null, { skip: (args.page - 1) * 5, limit: 5 });
+            return posts;
+        }
+        posts = await Post.find({},null,{ skip: (args.page - 1) * 5, limit: 5 });
         return posts;
     },
     comment : async(parent, args, ctx, info) => {
@@ -101,7 +106,12 @@ const Query = {
             throw new Error('Unauthenticated');
         }
         const Comment = ctx.default.Comment;
-        const comments = await Comment.find();
+        let comments;
+        if(args.onlySelf) {
+            comments = await Comment.find({author: ctx.req._id}, null, { skip: (args.page - 1) * 5, limit: 5 });
+            return comments;
+        }
+        comments = await Comment.find({},null, { skip: (args.page - 1) * 5, limit: 5 });
         return comments;
     }
 }

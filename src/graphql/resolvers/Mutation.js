@@ -22,7 +22,7 @@ const Mutation = {
                 throw new Error('Unauthenticated');
             }
             const User = ctx.default.User;
-            const user = await User.findById(args.id);
+            const user = await User.findById(ctx.req._id);
             if(!user) {
                 throw new Error('user not found');
             }
@@ -52,17 +52,17 @@ const Mutation = {
             const Post = ctx.default.Post;
             const User = ctx.default.User;
             const Comment = ctx.default.Comment;
-            const user = await User.findById(args.id);
+            const user = await User.findById(ctx.req._id);
             if(!user) {
                 throw new Error('user not found');
             }
-            const posts = await Post.find({author: args.id});
+            const posts = await Post.find({author: ctx.req._id});
             posts.forEach(async(post) => {
                 await deleteComments(post._id, Comment);
             });
-            await Post.deleteMany({author: args.id});
-            await Comment.deleteMany({author: args.id});
-            const deleted = await User.deleteOne({_id: args.id});
+            await Post.deleteMany({author: ctx.req._id});
+            await Comment.deleteMany({author: ctx.req._id});
+            const deleted = await User.deleteOne({_id: ctx.req._id});
             return deleted.ok;
         } 
         catch (error) {
@@ -76,7 +76,8 @@ const Mutation = {
             }
             const Post = ctx.default.Post;
             const post = new Post({
-                ...args.data
+                ...args.data,
+                author: ctx.req._id
             });
             await post.save();
             return post;
@@ -95,6 +96,9 @@ const Mutation = {
             if(!post) {
                 throw new Error('post not found');
             }
+            if(post.author != ctx.req._id) {
+                throw new Error('Unauthenticated');
+            }
             await deleteComments(post._id, ctx.default.Comment);
             const deleted = await Post.deleteOne({_id: args.id});
             return deleted.ok;
@@ -109,8 +113,14 @@ const Mutation = {
                 throw new Error('Unauthenticated');
             }
             const Comment = ctx.default.Comment;
+            const Post = ctx.default.Post;
+            const post = await Post.findById(args.data.post);
+            if(!post) {
+                throw new Error('post not found');
+            }
             const comment = new Comment({
                 ...args.data,
+                author: ctx.req._id
             });
             await comment.save();
             return comment;
@@ -125,6 +135,13 @@ const Mutation = {
                 throw new Error('Unauthenticated');
             }
             const Comment = ctx.default.Comment;
+            const comment = await Comment.findById(args.id);
+            if(!comment) {
+                throw new Error('comment not found');
+            }
+            if(comment.author != ctx.req._id) {
+                throw new Error('Unauthenticated');
+            }
             const deleted = await Comment.deleteOne({_id: args.id});
             return deleted.ok;
         } 
